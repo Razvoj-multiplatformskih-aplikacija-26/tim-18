@@ -34,3 +34,6 @@ jobs:
             (cd "${package}" && dart test -p vm,chrome)
             echo "::endgroup::"
           done
+
+      - name: Test the mobile app
+        run: cd apps/mobile && flutter test
