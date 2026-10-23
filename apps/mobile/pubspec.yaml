@@ -18,9 +18,23 @@ dependencies:
   go_router: 18.0.2
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.4
   flutter_lints: 6.0.0
   flutter_test:
     sdk: flutter
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Barlow
+      fonts:
+        - asset: assets/fonts/Barlow-Regular.ttf
+        - asset: assets/fonts/Barlow-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Barlow-Bold.ttf
+          weight: 700
+
+flutter_launcher_icons:
+  ios: true
+  remove_alpha_ios: true
+  image_path: assets/icon/app_icon.png
