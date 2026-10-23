@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile/app.dart';
-import 'package:mobile/router.dart';
 import 'package:mobile/screens/incident_detail_screen.dart';
 import 'package:mobile/screens/incidents_screen.dart';
 import 'package:mobile/screens/report_screen.dart';
 import 'package:mobile/theme/app_theme.dart';
 
+import 'pump_app.dart';
+
 void main() {
   group('routing', () {
     testWidgets('opens on the incident list', (tester) async {
-      await tester.pumpWidget(const RaceDirectionApp());
+      await pumpApp(tester);
+      await tester.pumpAndSettle();
       expect(find.byType(IncidentsScreen), findsOneWidget);
     });
 
     testWidgets('every screen has its own address', (tester) async {
-      final router = buildRouter();
-      addTearDown(router.dispose);
-      await tester.pumpWidget(RaceDirectionApp(router: router));
+      final router = await pumpApp(tester);
+      await tester.pumpAndSettle();
 
       router.go('/incidents/i-01');
       await tester.pumpAndSettle();
@@ -30,8 +30,9 @@ void main() {
       expect(find.byType(IncidentDetailScreen), findsNothing);
     });
 
-    testWidgets('the placeholder buttons navigate by route name', (tester) async {
-      await tester.pumpWidget(const RaceDirectionApp());
+    testWidgets('the report button navigates by route name', (tester) async {
+      await pumpApp(tester);
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text('Prijavi incident'));
       await tester.pumpAndSettle();
