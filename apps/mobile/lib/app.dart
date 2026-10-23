@@ -34,9 +34,12 @@ class _RaceDirectionAppState extends State<RaceDirectionApp> {
     return RepositoryProvider<AppDependencies>.value(
       value: dependencies,
       child: BlocProvider<IncidentsBloc>(
-        create: (_) =>
-            IncidentsBloc(repository: dependencies.repository, user: dependencies.user, newId: dependencies.newId)
-              ..add(const IncidentsRequested()),
+        create: (_) => IncidentsBloc(
+          repository: dependencies.repository,
+          user: dependencies.user,
+          newId: dependencies.newId,
+          now: dependencies.now,
+        )..add(const IncidentsRequested()),
         child: MaterialApp.router(
           title: 'Race Direction',
           debugShowCheckedModeBanner: false,

@@ -13,7 +13,7 @@ const riders = <Rider>[
   Rider(id: RiderId('r-90'), number: 90, name: 'Andrej Lukić'),
 ];
 
-final _raceStart = DateTime.utc(2026, 11, 8, 14);
+final _raceStart = DateTime.utc(2026, 10, 18, 14);
 
 DateTime _at(int minutes) => _raceStart.add(Duration(minutes: minutes));
 
