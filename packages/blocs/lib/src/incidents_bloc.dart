@@ -6,32 +6,18 @@ import 'incidents_event.dart';
 import 'incidents_state.dart';
 
 class IncidentsBloc extends Bloc<IncidentsEvent, IncidentsState> {
-  IncidentsBloc({
-    required this._repository,
-    required this._user,
-    required this._newId,
-    DateTime Function()? now,
-  }) : _now = now ?? DateTime.now,
-       super(const IncidentsLoading()) {
+  IncidentsBloc({required this._repository, required this._user, required this._newId, DateTime Function()? now})
+    : _now = now ?? DateTime.now,
+      super(const IncidentsLoading()) {
     on<IncidentsRequested>(_onRequested);
     on<IncidentReported>(_onReported);
     on<IncidentConfirmed>(
-      (event, emit) => _decide(
-        event.incidentId,
-        (incident) => confirmIncident(incident, by: _user, now: _now()),
-        emit,
-      ),
+      (event, emit) => _decide(event.incidentId, (incident) => confirmIncident(incident, by: _user, now: _now()), emit),
     );
     on<IncidentReviewStarted>(
-      (event, emit) => _decide(
-        event.incidentId,
-        (incident) => startReview(incident, by: _user, now: _now()),
-        emit,
-      ),
+      (event, emit) => _decide(event.incidentId, (incident) => startReview(incident, by: _user, now: _now()), emit),
     );
-    on<IncidentPenalized>(
-      (event, emit) => _decide(event.incidentId, (incident) => _penalize(incident, event), emit),
-    );
+    on<IncidentPenalized>((event, emit) => _decide(event.incidentId, (incident) => _penalize(incident, event), emit));
     on<IncidentDismissed>(
       (event, emit) => _decide(
         event.incidentId,
@@ -80,10 +66,7 @@ class IncidentsBloc extends Bloc<IncidentsEvent, IncidentsState> {
     try {
       final saved = await _repository.save(incident);
       emit(
-        IncidentsLoaded(
-          incidents: _newestFirst([saved, ...current.incidents]),
-          submission: SubmissionStatus.succeeded,
-        ),
+        IncidentsLoaded(incidents: _newestFirst([saved, ...current.incidents]), submission: SubmissionStatus.succeeded),
       );
     } on RepositoryException {
       emit(current.withSubmission(SubmissionStatus.failed));

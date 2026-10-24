@@ -15,12 +15,7 @@ final class IncidentsRequested extends IncidentsEvent {
 
 /// A marshal submitted the report form. Raw input: the domain validates it.
 final class IncidentReported extends IncidentsEvent {
-  const IncidentReported({
-    required this.riderId,
-    required this.kind,
-    required this.description,
-    required this.turn,
-  });
+  const IncidentReported({required this.riderId, required this.kind, required this.description, required this.turn});
 
   final RiderId riderId;
   final IncidentKind kind;
