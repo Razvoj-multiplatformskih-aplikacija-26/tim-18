@@ -33,6 +33,15 @@ class FakeIncidentRepository implements IncidentRepository {
     return incident;
   }
 
+  @override
+  Future<Incident> update(Incident incident) async {
+    await _simulateNetwork();
+    final index = _incidents.indexWhere((stored) => stored.id == incident.id);
+    if (index == -1) throw const RepositoryException('Incident ne postoji.');
+    _incidents[index] = incident;
+    return incident;
+  }
+
   Future<void> _simulateNetwork() async {
     await Future<void>.delayed(latency);
     if (!_failNext) return;

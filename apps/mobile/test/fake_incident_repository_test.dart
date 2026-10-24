@@ -67,4 +67,31 @@ void main() {
 
     expect((await repository.incidentsFor(demoMarshal)).length, before.length);
   });
+
+  test('an update replaces the stored incident', () async {
+    final repository = build();
+    final stored = (await repository.incidentsFor(demoDirector)).firstWhere((incident) => incident.id.value == 'i-01');
+    final confirmed = confirmIncident(stored, by: demoDirector, now: DateTime.utc(2026, 10, 18, 16)).valueOrNull!;
+
+    await repository.update(confirmed);
+
+    final after = (await repository.incidentsFor(demoDirector)).firstWhere((incident) => incident.id.value == 'i-01');
+    expect(after.status, isA<Confirmed>());
+  });
+
+  test('updating an unknown incident fails', () async {
+    final repository = build();
+    final stored = (await repository.incidentsFor(demoDirector)).first;
+    final unknown = Incident(
+      id: const IncidentId('i-unknown'),
+      reporterId: stored.reporterId,
+      riderId: stored.riderId,
+      kind: stored.kind,
+      description: stored.description,
+      turn: stored.turn,
+      reportedAt: stored.reportedAt,
+    );
+
+    await expectLater(repository.update(unknown), throwsA(isA<RepositoryException>()));
+  });
 }

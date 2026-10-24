@@ -9,7 +9,12 @@ const rider93 = RiderId('r-93');
 
 final raceStart = DateTime.utc(2026, 11, 8, 14);
 
-Incident incident(String id, {UserId reporterId = const UserId('u-marshal'), int minutes = 0}) {
+Incident incident(
+  String id, {
+  UserId reporterId = const UserId('u-marshal'),
+  int minutes = 0,
+  IncidentStatus status = const Reported(),
+}) {
   return Incident(
     id: IncidentId(id),
     reporterId: reporterId,
@@ -18,6 +23,7 @@ Incident incident(String id, {UserId reporterId = const UserId('u-marshal'), int
     description: IncidentDescription.parse('Vozač je prešao liniju staze u krivini.').valueOrNull!,
     turn: TurnNumber.parse(5).valueOrNull!,
     reportedAt: raceStart.add(Duration(minutes: minutes)),
+    status: status,
   );
 }
 
@@ -29,6 +35,7 @@ class FakeIncidentRepository implements IncidentRepository {
   final List<Incident> _incidents;
   bool failNext = false;
   int saveCalls = 0;
+  int updateCalls = 0;
 
   @override
   Future<List<Incident>> incidentsFor(User viewer) async {
@@ -44,6 +51,16 @@ class FakeIncidentRepository implements IncidentRepository {
     saveCalls++;
     _failIfRequested();
     _incidents.add(incident);
+    return incident;
+  }
+
+  @override
+  Future<Incident> update(Incident incident) async {
+    updateCalls++;
+    _failIfRequested();
+    final index = _incidents.indexWhere((stored) => stored.id == incident.id);
+    if (index == -1) throw const RepositoryException('unknown incident');
+    _incidents[index] = incident;
     return incident;
   }
 

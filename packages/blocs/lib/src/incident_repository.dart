@@ -14,6 +14,11 @@ abstract interface class IncidentRepository {
   ///
   /// Throws [RepositoryException] when it cannot be saved.
   Future<Incident> save(Incident incident);
+
+  /// Replaces the stored incident that has the same id, and returns it.
+  ///
+  /// Throws [RepositoryException] when it cannot be saved or does not exist.
+  Future<Incident> update(Incident incident);
 }
 
 /// Transport or storage failure. Business rule violations are never thrown;
