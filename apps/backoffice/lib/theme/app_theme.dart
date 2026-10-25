@@ -10,10 +10,18 @@ abstract final class AppTheme {
 
   static ThemeData _build(Brightness brightness) {
     final scheme = ColorScheme.fromSeed(seedColor: _seed, brightness: brightness);
+
+    // The backoffice is used with the keyboard, so whatever has the focus gets
+    // a ring that can be seen from across the desk.
+    final focusRing = WidgetStateProperty.resolveWith<BorderSide?>(
+      (states) => states.contains(WidgetState.focused) ? BorderSide(color: scheme.tertiary, width: 3) : null,
+    );
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
       fontFamily: fontFamily,
+      focusColor: scheme.primary.withValues(alpha: 0.25),
       appBarTheme: AppBarTheme(
         centerTitle: false,
         backgroundColor: scheme.surface,
@@ -25,6 +33,10 @@ abstract final class AppTheme {
           color: scheme.onSurface,
         ),
       ),
+      filledButtonTheme: FilledButtonThemeData(style: ButtonStyle(side: focusRing)),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: ButtonStyle(side: focusRing)),
+      textButtonTheme: TextButtonThemeData(style: ButtonStyle(side: focusRing)),
+      iconButtonTheme: IconButtonThemeData(style: ButtonStyle(side: focusRing)),
       inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
     );
   }

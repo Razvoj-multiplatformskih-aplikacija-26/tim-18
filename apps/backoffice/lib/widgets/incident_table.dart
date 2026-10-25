@@ -11,12 +11,52 @@ const _flexKind = 3;
 const _flexTurn = 1;
 const _flexStatus = 2;
 
-class IncidentTable extends StatelessWidget {
+/// Every row has the same height, so the table can scroll to any row by its
+/// index even when that row is not built yet.
+const _rowHeight = 52.0;
+
+class IncidentTable extends StatefulWidget {
   const IncidentTable({super.key, required this.incidents, required this.selectedId, required this.onSelected});
 
   final List<Incident> incidents;
   final IncidentId? selectedId;
   final ValueChanged<Incident> onSelected;
+
+  @override
+  State<IncidentTable> createState() => _IncidentTableState();
+}
+
+class _IncidentTableState extends State<IncidentTable> {
+  final _controller = ScrollController();
+
+  @override
+  void didUpdateWidget(IncidentTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedId != oldWidget.selectedId) _scrollToSelected();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Keeps the selected row on screen when the keyboard moves the selection.
+  void _scrollToSelected() {
+    final index = widget.incidents.indexWhere((incident) => incident.id == widget.selectedId);
+    if (index == -1) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_controller.hasClients) return;
+      final position = _controller.position;
+      final top = index * _rowHeight;
+      final bottom = top + _rowHeight;
+      if (top < position.pixels) {
+        _controller.jumpTo(top);
+      } else if (bottom > position.pixels + position.viewportDimension) {
+        _controller.jumpTo(bottom - position.viewportDimension);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +66,16 @@ class IncidentTable extends StatelessWidget {
         const Divider(height: 1),
         Expanded(
           child: ListView.builder(
-            itemCount: incidents.length,
+            controller: _controller,
+            itemExtent: _rowHeight,
+            itemCount: widget.incidents.length,
             itemBuilder: (context, index) {
-              final incident = incidents[index];
+              final incident = widget.incidents[index];
               return IncidentRow(
                 key: ValueKey('row-${incident.id.value}'),
                 incident: incident,
-                selected: incident.id == selectedId,
-                onTap: () => onSelected(incident),
+                selected: incident.id == widget.selectedId,
+                onTap: () => widget.onSelected(incident),
               );
             },
           ),
@@ -88,12 +130,18 @@ class IncidentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Material(
-      color: selected ? Theme.of(context).colorScheme.secondaryContainer : Colors.transparent,
+      color: selected ? scheme.secondaryContainer : Colors.transparent,
       child: InkWell(
+        // The table as a whole takes the focus; the rows are not tab stops.
+        canRequestFocus: false,
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border(left: BorderSide(color: selected ? scheme.primary : Colors.transparent, width: 4)),
+          ),
           child: Row(
             children: [
               Expanded(flex: _flexTime, child: Text(formatTime(incident.reportedAt))),

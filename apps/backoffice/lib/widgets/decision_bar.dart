@@ -3,6 +3,7 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../shortcuts.dart';
 import '../text/labels.dart';
 import 'dismiss_dialog.dart';
 import 'penalty_dialog.dart';
@@ -26,28 +27,31 @@ class DecisionBar extends StatelessWidget {
 
   Widget _button(BuildContext context, Decision decision) {
     final key = Key('decision-${decision.name}');
-    final onPressed = busy ? null : () => _run(context, decision);
+    final onPressed = busy ? null : () => runDecision(context, incident, decision);
+    final label = Text('${decision.label} (${decision.keyLabel})');
     return switch (decision) {
-      Decision.dismiss => OutlinedButton(key: key, onPressed: onPressed, child: Text(decision.label)),
-      _ => FilledButton(key: key, onPressed: onPressed, child: Text(decision.label)),
+      Decision.dismiss => OutlinedButton(key: key, onPressed: onPressed, child: label),
+      _ => FilledButton(key: key, onPressed: onPressed, child: label),
     };
   }
+}
 
-  Future<void> _run(BuildContext context, Decision decision) async {
-    final bloc = context.read<IncidentsBloc>();
-    switch (decision) {
-      case Decision.confirm:
-        bloc.add(IncidentConfirmed(incident.id));
-      case Decision.startReview:
-        bloc.add(IncidentReviewStarted(incident.id));
-      case Decision.issuePenalty:
-        final penalty = await showDialog<(PenaltyKind, int)>(context: context, builder: (_) => const PenaltyDialog());
-        if (penalty == null) return;
-        bloc.add(IncidentPenalized(incidentId: incident.id, kind: penalty.$1, points: penalty.$2));
-      case Decision.dismiss:
-        final reason = await showDialog<String>(context: context, builder: (_) => const DismissDialog());
-        if (reason == null) return;
-        bloc.add(IncidentDismissed(incidentId: incident.id, reason: reason));
-    }
+/// What a decision does: some go straight to the BLoC, the others first ask
+/// for what the domain needs. Used by the buttons and by the keyboard shortcuts.
+Future<void> runDecision(BuildContext context, Incident incident, Decision decision) async {
+  final bloc = context.read<IncidentsBloc>();
+  switch (decision) {
+    case Decision.confirm:
+      bloc.add(IncidentConfirmed(incident.id));
+    case Decision.startReview:
+      bloc.add(IncidentReviewStarted(incident.id));
+    case Decision.issuePenalty:
+      final penalty = await showDialog<(PenaltyKind, int)>(context: context, builder: (_) => const PenaltyDialog());
+      if (penalty == null) return;
+      bloc.add(IncidentPenalized(incidentId: incident.id, kind: penalty.$1, points: penalty.$2));
+    case Decision.dismiss:
+      final reason = await showDialog<String>(context: context, builder: (_) => const DismissDialog());
+      if (reason == null) return;
+      bloc.add(IncidentDismissed(incidentId: incident.id, reason: reason));
   }
 }

@@ -9,8 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 /// The backoffice is made for big screens, so tests use one.
-void useWideScreen(WidgetTester tester) {
-  tester.view.physicalSize = const Size(1400, 1200);
+void useWideScreen(WidgetTester tester, {double height = 1200}) {
+  tester.view.physicalSize = Size(1400, height);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 }
