@@ -68,3 +68,12 @@ extension IncidentStageLabel on IncidentStage {
     IncidentStage.dismissed => 'Odbačen',
   };
 }
+
+extension DecisionLabel on Decision {
+  String get label => switch (this) {
+    Decision.confirm => 'Potvrdi',
+    Decision.startReview => 'Započni razmatranje',
+    Decision.issuePenalty => 'Izreci kaznu',
+    Decision.dismiss => 'Odbaci',
+  };
+}

@@ -3,6 +3,7 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../text/error_messages.dart';
 import '../widgets/debug_menu.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/incident_panel.dart';
@@ -20,27 +21,48 @@ class _IncidentsScreenState extends State<IncidentsScreen> {
   Rider? _rider;
   IncidentId? _selectedId;
 
+  void _onSubmission(BuildContext context, IncidentsState state) {
+    if (state is! IncidentsLoaded) return;
+    final messenger = ScaffoldMessenger.of(context);
+    switch (state.submission) {
+      case SubmissionStatus.idle || SubmissionStatus.inProgress:
+        break;
+      case SubmissionStatus.succeeded:
+        messenger.showSnackBar(const SnackBar(content: Text('Odluka je sačuvana.')));
+      case SubmissionStatus.rejected:
+        messenger.showSnackBar(SnackBar(content: Text(state.submissionError?.message ?? 'Odluka nije prihvaćena.')));
+      case SubmissionStatus.failed:
+        messenger.showSnackBar(const SnackBar(content: Text('Odluka nije sačuvana. Pokušajte ponovo.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Race Direction · Direkcija'), actions: const [DebugMenu()]),
-      body: BlocBuilder<IncidentsBloc, IncidentsState>(
-        builder: (context, state) => switch (state) {
-          IncidentsLoading() => const Center(child: CircularProgressIndicator()),
-          IncidentsFailure() => _ErrorView(
-            onRetry: () => context.read<IncidentsBloc>().add(const IncidentsRequested()),
-          ),
-          IncidentsLoaded(isEmpty: true) => const _Message(
-            icon: Icons.flag_outlined,
-            text: 'Nema prijavljenih incidenata.',
-          ),
-          IncidentsLoaded(:final incidents) => _workspace(incidents),
-        },
+    return BlocListener<IncidentsBloc, IncidentsState>(
+      listenWhen: (previous, current) =>
+          current is IncidentsLoaded && (previous is! IncidentsLoaded || previous.submission != current.submission),
+      listener: _onSubmission,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Race Direction · Direkcija'), actions: const [DebugMenu()]),
+        body: BlocBuilder<IncidentsBloc, IncidentsState>(
+          builder: (context, state) => switch (state) {
+            IncidentsLoading() => const Center(child: CircularProgressIndicator()),
+            IncidentsFailure() => _ErrorView(
+              onRetry: () => context.read<IncidentsBloc>().add(const IncidentsRequested()),
+            ),
+            IncidentsLoaded(isEmpty: true) => const _Message(
+              icon: Icons.flag_outlined,
+              text: 'Nema prijavljenih incidenata.',
+            ),
+            final IncidentsLoaded loaded => _workspace(loaded),
+          },
+        ),
       ),
     );
   }
 
-  Widget _workspace(List<Incident> incidents) {
+  Widget _workspace(IncidentsLoaded loaded) {
+    final incidents = loaded.incidents;
     final shown = filterIncidents(incidents, stage: _stage, riderId: _rider?.id);
     final selected = incidents.where((incident) => incident.id == _selectedId).firstOrNull;
 
@@ -74,7 +96,12 @@ class _IncidentsScreenState extends State<IncidentsScreen> {
           const VerticalDivider(width: 1),
           SizedBox(
             width: 360,
-            child: IncidentPanel(incident: selected, all: incidents, onClose: () => setState(() => _selectedId = null)),
+            child: IncidentPanel(
+              incident: selected,
+              all: incidents,
+              busy: loaded.submission == SubmissionStatus.inProgress,
+              onClose: () => setState(() => _selectedId = null),
+            ),
           ),
         ],
       ],

@@ -21,11 +21,20 @@ Result<Incident> issuePenalty(Incident incident, {required User by, required Dat
   return _transition(incident, PenaltyIssued(penalty: penalty, by: by.id, at: now.toUtc()));
 }
 
+/// The reason for a dismissal: required, and stored trimmed. Forms use this
+/// same function to check the input before it is sent.
+Result<String> parseDismissalReason(String input) {
+  final trimmed = input.trim();
+  if (trimmed.isEmpty) return const Failure(ReasonRequired());
+  return Success(trimmed);
+}
+
 Result<Incident> dismissIncident(Incident incident, {required User by, required DateTime now, required String reason}) {
   if (!AccessPolicy.canDecide(by)) return const Failure(NotAllowed());
-  final trimmed = reason.trim();
-  if (trimmed.isEmpty) return const Failure(ReasonRequired());
-  return _transition(incident, Dismissed(reason: trimmed, by: by.id, at: now.toUtc()));
+  final parsed = parseDismissalReason(reason);
+  final error = parsed.errorOrNull;
+  if (error != null) return Failure(error);
+  return _transition(incident, Dismissed(reason: parsed.valueOrNull!, by: by.id, at: now.toUtc()));
 }
 
 Result<Incident> _transition(Incident incident, IncidentStatus next) {

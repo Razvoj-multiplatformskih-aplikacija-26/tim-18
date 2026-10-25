@@ -2,17 +2,27 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 
 import '../text/labels.dart';
+import 'decision_bar.dart';
 import 'status_chip.dart';
 
 /// Detail of the selected incident, with what the direction needs to decide:
 /// the rider's penalty points and reports that may be duplicates.
 class IncidentPanel extends StatelessWidget {
-  const IncidentPanel({super.key, required this.incident, required this.all, required this.onClose});
+  const IncidentPanel({
+    super.key,
+    required this.incident,
+    required this.all,
+    required this.busy,
+    required this.onClose,
+  });
 
   final Incident incident;
 
   /// Every incident the direction sees, to compute points and duplicates.
   final List<Incident> all;
+
+  /// A decision is being saved.
+  final bool busy;
   final VoidCallback onClose;
 
   @override
@@ -58,6 +68,11 @@ class IncidentPanel extends StatelessWidget {
               ? 'Nema'
               : duplicates.map((other) => '${other.id.value} (${formatTime(other.reportedAt)})').join(', '),
         ),
+        const Divider(),
+        const SizedBox(height: 8),
+        Text('Odluka', style: textTheme.labelMedium),
+        const SizedBox(height: 8),
+        DecisionBar(incident: incident, busy: busy),
       ],
     );
   }

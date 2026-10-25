@@ -1,6 +1,7 @@
 export 'src/errors.dart';
 export 'src/identifiers.dart';
 export 'src/incident/access_policy.dart';
+export 'src/incident/decisions.dart';
 export 'src/incident/description.dart';
 export 'src/incident/incident.dart';
 export 'src/incident/incident_kind.dart';
