@@ -37,3 +37,9 @@ jobs:
 
       - name: Test the mobile app
         run: cd apps/mobile && flutter test
+
+      - name: Test the backoffice
+        run: cd apps/backoffice && flutter test
+
+      - name: Test the backoffice
+        run: cd apps/backoffice && flutter test
