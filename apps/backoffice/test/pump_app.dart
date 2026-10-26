@@ -29,6 +29,7 @@ Future<GoRouter> pumpApp(WidgetTester tester, {FakeIncidentRepository? repositor
         repository: fake,
         user: user,
         onFailNextRequest: fake.failNextRequest,
+        onEmptyNextRequest: fake.emptyNextRequest,
         newId: () => const IncidentId('i-test'),
         now: () => DateTime.utc(2026, 10, 20, 12),
       ),

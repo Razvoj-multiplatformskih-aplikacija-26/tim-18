@@ -33,7 +33,7 @@ class IncidentPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final note = statusNote(incident.status);
-    final points = penaltyPointsOf(incident.riderId, all);
+    final standing = standingOf(incident.riderId, all);
     final duplicates = possibleDuplicates(incident, all);
 
     return ListView(
@@ -57,9 +57,9 @@ class IncidentPanel extends StatelessWidget {
         if (note != null) _Field(label: 'Stanje', value: note),
         _Field(
           label: 'Kazneni poeni vozača',
-          value: points >= longLapThreshold
-              ? '$points od $longLapThreshold · dostignut prag za long lap'
-              : '$points od $longLapThreshold',
+          value: standing.longLapDue
+              ? '${standing.points} od $longLapThreshold · dostignut prag za long lap'
+              : '${standing.points} od $longLapThreshold',
         ),
         _Field(
           label: 'Mogući duplikati',

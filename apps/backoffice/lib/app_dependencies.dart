@@ -9,6 +9,7 @@ class AppDependencies {
     required this.repository,
     required this.user,
     this.onFailNextRequest,
+    this.onEmptyNextRequest,
     IncidentId Function()? newId,
     this.now,
   }) : newId = newId ?? _timestampId;
@@ -22,6 +23,9 @@ class AppDependencies {
 
   /// Set only while a fake repository is plugged in; it drives the demo menu.
   final void Function()? onFailNextRequest;
+
+  /// Same for the empty list screen.
+  final void Function()? onEmptyNextRequest;
 
   static IncidentId _timestampId() => IncidentId('i-${DateTime.now().microsecondsSinceEpoch}');
 }

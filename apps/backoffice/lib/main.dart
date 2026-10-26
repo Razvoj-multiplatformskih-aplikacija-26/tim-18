@@ -13,6 +13,7 @@ void main() {
         repository: repository,
         user: demoDirector,
         onFailNextRequest: repository.failNextRequest,
+        onEmptyNextRequest: repository.emptyNextRequest,
       ),
     ),
   );
