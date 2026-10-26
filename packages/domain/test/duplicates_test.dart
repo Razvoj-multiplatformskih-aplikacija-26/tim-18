@@ -41,4 +41,37 @@ void main() {
       expect(possibleDuplicates(candidate, [dismissed, candidate]), isEmpty);
     });
   });
+
+  group('R3 · duplicates of a report that is about to be made', () {
+    final turn5 = TurnNumber.parse(5).valueOrNull!;
+    final existing = [incidentAt(raceStart, id: 'i-1')];
+
+    test('finds a close report of the same rider, turn and kind', () {
+      final found = duplicatesOfReport(
+        existing,
+        riderId: rider93,
+        kind: IncidentKind.trackLimits,
+        turn: turn5,
+        at: raceStart.add(const Duration(minutes: 2)),
+      );
+      expect(found, existing);
+    });
+
+    test('ignores a report outside the window or of another kind', () {
+      expect(
+        duplicatesOfReport(
+          existing,
+          riderId: rider93,
+          kind: IncidentKind.trackLimits,
+          turn: turn5,
+          at: raceStart.add(const Duration(minutes: 10)),
+        ),
+        isEmpty,
+      );
+      expect(
+        duplicatesOfReport(existing, riderId: rider93, kind: IncidentKind.crash, turn: turn5, at: raceStart),
+        isEmpty,
+      );
+    });
+  });
 }

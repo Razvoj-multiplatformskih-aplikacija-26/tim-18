@@ -34,6 +34,11 @@ int penaltyPointsOf(RiderId rider, Iterable<Incident> incidents) {
   return total;
 }
 
+/// The rider's total points and whether they reach the long lap threshold.
+RiderStanding standingOf(RiderId rider, Iterable<Incident> incidents) {
+  return RiderStanding(riderId: rider, points: penaltyPointsOf(rider, incidents));
+}
+
 bool crossesLongLapThreshold({required int pointsBefore, required int added}) =>
     pointsBefore < longLapThreshold && pointsBefore + added >= longLapThreshold;
 

@@ -41,4 +41,14 @@ void main() {
       expect(const RiderStanding(riderId: rider93, points: longLapThreshold - 1).longLapDue, isFalse);
     });
   });
+
+  group('R3 · standingOf', () {
+    test('adds up the points and says when the threshold is reached', () {
+      final incidents = [withPenalty('i-1', rider93, 2), withPenalty('i-2', rider93, 2)];
+      final standing = standingOf(rider93, incidents);
+      expect(standing.points, 4);
+      expect(standing.longLapDue, isTrue);
+      expect(standingOf(rider46, incidents).longLapDue, isFalse);
+    });
+  });
 }

@@ -13,13 +13,21 @@ class FakeIncidentRepository implements IncidentRepository {
   final Duration latency;
   final List<Incident> _incidents;
   bool _failNext = false;
+  bool _emptyNext = false;
 
   /// The next request will fail with a [RepositoryException].
   void failNextRequest() => _failNext = true;
 
+  /// The next list request will come back empty, once.
+  void emptyNextRequest() => _emptyNext = true;
+
   @override
   Future<List<Incident>> incidentsFor(User viewer) async {
     await _simulateNetwork();
+    if (_emptyNext) {
+      _emptyNext = false;
+      return [];
+    }
     return [
       for (final incident in _incidents)
         if (AccessPolicy.canView(viewer, incident)) incident,

@@ -5,10 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../app_dependencies.dart';
 import '../data/seed_data.dart';
 import '../router.dart';
 import '../text/error_messages.dart';
 import '../text/labels.dart';
+import '../widgets/confirm_report_dialog.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -43,16 +45,34 @@ class _ReportScreenState extends State<ReportScreen> {
     return IncidentDescription.parse(input ?? '').errorOrNull?.message;
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final valid = _formKey.currentState?.validate() ?? false;
     final rider = _rider;
     final kind = _kind;
     final turn = int.tryParse(_turnController.text.trim());
     if (!valid || rider == null || kind == null || turn == null) return;
 
-    context.read<IncidentsBloc>().add(
-      IncidentReported(riderId: rider.id, kind: kind, description: _descriptionController.text, turn: turn),
+    final bloc = context.read<IncidentsBloc>();
+    final dependencies = context.read<AppDependencies>();
+    final parsedTurn = TurnNumber.parse(turn).valueOrNull;
+    final state = bloc.state;
+    final duplicates = parsedTurn == null || state is! IncidentsLoaded
+        ? const <Incident>[]
+        : duplicatesOfReport(
+            state.incidents,
+            riderId: rider.id,
+            kind: kind,
+            turn: parsedTurn,
+            at: (dependencies.now ?? DateTime.now)(),
+          );
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => ConfirmReportDialog(duplicates: duplicates),
     );
+    if (confirmed != true) return;
+
+    bloc.add(IncidentReported(riderId: rider.id, kind: kind, description: _descriptionController.text, turn: turn));
   }
 
   void _onSubmission(BuildContext context, IncidentsState state) {

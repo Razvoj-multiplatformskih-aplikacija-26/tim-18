@@ -94,4 +94,10 @@ void main() {
 
     await expectLater(repository.update(unknown), throwsA(isA<RepositoryException>()));
   });
+
+  test('emptyNextRequest empties exactly one list request', () async {
+    final repository = build()..emptyNextRequest();
+    expect(await repository.incidentsFor(demoMarshal), isEmpty);
+    expect(await repository.incidentsFor(demoMarshal), isNotEmpty);
+  });
 }
