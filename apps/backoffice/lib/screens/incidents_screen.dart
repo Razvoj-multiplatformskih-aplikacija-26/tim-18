@@ -11,9 +11,14 @@ import '../text/error_messages.dart';
 import '../widgets/debug_menu.dart';
 import '../widgets/decision_bar.dart';
 import '../widgets/filter_bar.dart';
+import '../widgets/incident_list.dart';
 import '../widgets/incident_panel.dart';
 import '../widgets/incident_table.dart';
 import '../widgets/shortcuts_dialog.dart';
+
+/// Below this width the table becomes a list and the detail takes the whole
+/// window instead of sitting next to it.
+const _wideBreakpoint = 900.0;
 
 class IncidentsScreen extends StatefulWidget {
   const IncidentsScreen({super.key});
@@ -23,23 +28,52 @@ class IncidentsScreen extends StatefulWidget {
 }
 
 class _IncidentsScreenState extends State<IncidentsScreen> {
-  final _tableFocus = FocusNode(debugLabel: 'incident-table');
+  final _focus = FocusNode(debugLabel: 'incident-list');
   IncidentStage? _stage;
   Rider? _rider;
+
+  /// The selection lives here, above the layout switch, so resizing the window
+  /// never loses it.
   IncidentId? _selectedId;
+
+  /// Narrow layout only: whether the detail covers the list. The wide layout
+  /// shows the panel whenever something is selected.
+  bool _detailOpen = false;
 
   @override
   void dispose() {
-    _tableFocus.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
-  void _select(Incident incident) {
-    setState(() => _selectedId = incident.id);
-    _tableFocus.requestFocus();
+  /// The list and the detail are different widgets, so after switching between
+  /// them the focus is asked for again once they are built.
+  void _refocus() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focus.requestFocus();
+    });
   }
 
-  void _clearSelection() => setState(() => _selectedId = null);
+  void _select(Incident incident, {bool openDetail = false}) {
+    setState(() {
+      _selectedId = incident.id;
+      if (openDetail) _detailOpen = true;
+    });
+    _refocus();
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedId = null;
+      _detailOpen = false;
+    });
+    _refocus();
+  }
+
+  void _closeDetail() {
+    setState(() => _detailOpen = false);
+    _refocus();
+  }
 
   /// Moves the selection by [delta] rows. Nothing selected yet: down starts at
   /// the first row, up at the last. The ends stop the selection.
@@ -50,7 +84,7 @@ class _IncidentsScreenState extends State<IncidentsScreen> {
     _select(shown[next]);
   }
 
-  KeyEventResult _onTableKey(KeyEvent event, List<Incident> shown) {
+  KeyEventResult _onKey(KeyEvent event, List<Incident> shown, {required bool narrow}) {
     if (event is KeyUpEvent) return KeyEventResult.ignored;
     final key = event.logicalKey;
     if (key == LogicalKeyboardKey.arrowDown) {
@@ -61,8 +95,15 @@ class _IncidentsScreenState extends State<IncidentsScreen> {
       _select(shown.first);
     } else if (key == LogicalKeyboardKey.end && shown.isNotEmpty) {
       _select(shown.last);
-    } else if ((key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.numpadEnter) && _selectedId == null) {
-      _move(shown, 1);
+    } else if (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.numpadEnter) {
+      if (_selectedId == null) {
+        _move(shown, 1);
+      } else if (narrow) {
+        setState(() => _detailOpen = true);
+        _refocus();
+      } else {
+        return KeyEventResult.ignored;
+      }
     } else {
       return KeyEventResult.ignored;
     }
@@ -126,66 +167,105 @@ class _IncidentsScreenState extends State<IncidentsScreen> {
     final shown = filterIncidents(incidents, stage: _stage, riderId: _rider?.id);
     final selected = incidents.where((incident) => incident.id == _selectedId).firstOrNull;
 
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.escape): _clearSelection,
-        const SingleActivator(LogicalKeyboardKey.f1): () => unawaited(showShortcutsDialog(context)),
-        for (final decision in Decision.values)
-          SingleActivator(decision.key): () {
-            if (selected == null || busy || !decisionsFor(selected.status).contains(decision)) return;
-            unawaited(runDecision(context, selected, decision));
-          },
-      },
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                FilterBar(
-                  stage: _stage,
-                  rider: _rider,
-                  onStageChanged: (stage) => setState(() => _stage = stage),
-                  onRiderChanged: (rider) => setState(() => _rider = rider),
-                  shown: shown.length,
-                  total: incidents.length,
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: Focus(
-                    focusNode: _tableFocus,
-                    autofocus: true,
-                    onKeyEvent: (node, event) => _onTableKey(event, shown),
-                    child: ListenableBuilder(
-                      listenable: _tableFocus,
-                      builder: (context, child) => DecoratedBox(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: _tableFocus.hasFocus ? Theme.of(context).colorScheme.primary : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                        child: child,
-                      ),
-                      child: shown.isEmpty
-                          ? const _Message(
-                              icon: Icons.filter_alt_off_outlined,
-                              text: 'Nema incidenata za izabrane filtere.',
-                            )
-                          : IncidentTable(incidents: shown, selectedId: _selectedId, onSelected: _select),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < _wideBreakpoint;
+        final showDetail = narrow && selected != null && _detailOpen;
+
+        final panel = selected == null
+            ? null
+            : IncidentPanel(
+                incident: selected,
+                all: incidents,
+                busy: busy,
+                onClose: narrow ? _closeDetail : _clearSelection,
+                closeIcon: narrow ? Icons.arrow_back : Icons.close,
+                closeTooltip: narrow ? 'Nazad' : 'Zatvori',
+              );
+
+        final Widget content;
+        if (showDetail) {
+          content = _keyboardArea(shown, narrow: narrow, child: panel!);
+        } else {
+          content = Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    FilterBar(
+                      stage: _stage,
+                      rider: _rider,
+                      onStageChanged: (stage) => setState(() => _stage = stage),
+                      onRiderChanged: (rider) => setState(() => _rider = rider),
+                      shown: shown.length,
+                      total: incidents.length,
                     ),
-                  ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: _keyboardArea(
+                        shown,
+                        narrow: narrow,
+                        child: shown.isEmpty
+                            ? const _Message(
+                                icon: Icons.filter_alt_off_outlined,
+                                text: 'Nema incidenata za izabrane filtere.',
+                              )
+                            : narrow
+                            ? IncidentList(
+                                incidents: shown,
+                                selectedId: _selectedId,
+                                onSelected: (incident) => _select(incident, openDetail: true),
+                              )
+                            : IncidentTable(
+                                incidents: shown,
+                                selectedId: _selectedId,
+                                onSelected: (incident) => _select(incident, openDetail: true),
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+              if (!narrow && panel != null) ...[const VerticalDivider(width: 1), SizedBox(width: 360, child: panel)],
+            ],
+          );
+        }
+
+        return CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.escape): showDetail ? _closeDetail : _clearSelection,
+            const SingleActivator(LogicalKeyboardKey.f1): () => unawaited(showShortcutsDialog(context)),
+            for (final decision in Decision.values)
+              SingleActivator(decision.key): () {
+                if (selected == null || busy || !decisionsFor(selected.status).contains(decision)) return;
+                unawaited(runDecision(context, selected, decision));
+              },
+          },
+          child: content,
+        );
+      },
+    );
+  }
+
+  /// The part of the screen the arrow keys work on, with a ring while it has
+  /// the focus.
+  Widget _keyboardArea(List<Incident> shown, {required bool narrow, required Widget child}) {
+    return Focus(
+      focusNode: _focus,
+      autofocus: true,
+      onKeyEvent: (node, event) => _onKey(event, shown, narrow: narrow),
+      child: ListenableBuilder(
+        listenable: _focus,
+        builder: (context, child) => DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: _focus.hasFocus ? Theme.of(context).colorScheme.primary : Colors.transparent,
+              width: 2,
             ),
           ),
-          if (selected != null) ...[
-            const VerticalDivider(width: 1),
-            SizedBox(
-              width: 360,
-              child: IncidentPanel(incident: selected, all: incidents, busy: busy, onClose: _clearSelection),
-            ),
-          ],
-        ],
+          child: child,
+        ),
+        child: child,
       ),
     );
   }

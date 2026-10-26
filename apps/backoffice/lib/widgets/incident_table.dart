@@ -2,6 +2,7 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 
 import '../text/labels.dart';
+import 'scroll_into_view.dart';
 import 'status_chip.dart';
 
 /// Column widths as flex factors, shared by the header and every row.
@@ -30,6 +31,12 @@ class _IncidentTableState extends State<IncidentTable> {
   final _controller = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    _scrollToSelected();
+  }
+
+  @override
   void didUpdateWidget(IncidentTable oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selectedId != oldWidget.selectedId) _scrollToSelected();
@@ -46,15 +53,7 @@ class _IncidentTableState extends State<IncidentTable> {
     final index = widget.incidents.indexWhere((incident) => incident.id == widget.selectedId);
     if (index == -1) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_controller.hasClients) return;
-      final position = _controller.position;
-      final top = index * _rowHeight;
-      final bottom = top + _rowHeight;
-      if (top < position.pixels) {
-        _controller.jumpTo(top);
-      } else if (bottom > position.pixels + position.viewportDimension) {
-        _controller.jumpTo(bottom - position.viewportDimension);
-      }
+      if (mounted) scrollRowIntoView(_controller, index, _rowHeight);
     });
   }
 

@@ -47,7 +47,10 @@ class FilterBar extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+          Wrap(
+            spacing: 24,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               DropdownButton<Rider?>(
                 key: const Key('rider-filter'),
@@ -58,7 +61,6 @@ class FilterBar extends StatelessWidget {
                 ],
                 onChanged: onRiderChanged,
               ),
-              const Spacer(),
               Text('Prikazano $shown od $total'),
             ],
           ),

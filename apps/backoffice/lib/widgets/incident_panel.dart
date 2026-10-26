@@ -14,6 +14,8 @@ class IncidentPanel extends StatelessWidget {
     required this.all,
     required this.busy,
     required this.onClose,
+    this.closeIcon = Icons.close,
+    this.closeTooltip = 'Zatvori',
   });
 
   final Incident incident;
@@ -24,6 +26,8 @@ class IncidentPanel extends StatelessWidget {
   /// A decision is being saved.
   final bool busy;
   final VoidCallback onClose;
+  final IconData closeIcon;
+  final String closeTooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -39,12 +43,7 @@ class IncidentPanel extends StatelessWidget {
           children: [
             StatusChip(status: incident.status),
             const Spacer(),
-            IconButton(
-              key: const Key('close-panel'),
-              tooltip: 'Zatvori',
-              icon: const Icon(Icons.close),
-              onPressed: onClose,
-            ),
+            IconButton(key: const Key('close-panel'), tooltip: closeTooltip, icon: Icon(closeIcon), onPressed: onClose),
           ],
         ),
         const SizedBox(height: 8),
