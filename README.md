@@ -28,6 +28,15 @@ Glavni pojam je **incident**, koji prolazi kroz stanja: prijavljen → potvrđen
 
 Kazneni poeni jednog vozača skupljaju se iz incidenata koje su prijavili različiti marshali, pa server, a ne klijent, računa ukupan broj poena i automatski dodeljuje kaznu kad se pređe prag. Server takođe spaja duplirane prijave istog incidenta koje stignu od više marshala.
 
+Pravila žive u zajedničkom domenskom paketu (`packages/domain`), a oba klijenta ih samo pozivaju:
+
+- opis incidenta ima od 10 do 300 znakova, a krivina je broj od 1 do 30;
+- kazneni poeni jedne kazne su od 0 do 3, a odbacivanje incidenta traži razlog;
+- zbir kaznenih poena vozača računa se nad listom incidenata, a prag za long lap je 4 poena;
+- moguć duplikat je prijava istog vozača, krivine i vrste incidenta u razmaku do 5 minuta; mobilna aplikacija na to upozori pre slanja, a backoffice pokazuje moguće duplikate uz svaki incident.
+
+Konačnu odluku o poenima i duplikatima donosi server (KT2); klijenti prikazuju izračunavanje nad podacima koje vide.
+
 ### 4. Rad bez internet veze
 
 Na stazi signal često nestaje, pa marshal može da kreira prijavu incidenta i bez veze. Prijava se čuva lokalno u aplikaciji i sinhronizuje sa serverom čim se veza vrati, a server tada proverava duplikate i primenjuje pravila.
@@ -39,3 +48,33 @@ Direkcija trke koristi web aplikaciju na velikom ekranu u kojoj vidi tabelu svih
 ### 6. Javno dostupan sadržaj
 
 Javne stranice bez prijave prikazuju listu izrečenih kazni i stanje kaznenih poena po vozaču, pa ih navijači i pretraživači mogu otvoriti direktno.
+
+## Pokretanje
+
+Razvijamo na macOS-u, sa Flutter 3.47.7. Mobilna aplikacija se pokreće na iOS-u (iOS simulator, odnosno Device Hub u Xcode-u 27). Projekat je pub workspace, pa se paketi razrešavaju jednom iz korena.
+
+    git clone <URL>
+    cd tim-18
+    flutter pub get
+
+Mobilna aplikacija (marshal):
+
+    cd apps/mobile
+    flutter run -d <id uređaja>
+
+Backoffice (direkcija), na macOS-u i u pregledaču:
+
+    cd apps/backoffice
+    flutter run -d macos
+    flutter run -d chrome
+
+Id uređaja se dobija sa `flutter devices`.
+
+Testovi:
+
+    cd packages/domain && dart test -p vm,chrome
+    cd packages/blocs && dart test -p vm,chrome
+    cd apps/mobile && flutter test
+    cd apps/backoffice && flutter test
+
+Svaki klijent ima svoje lažne podatke u memoriji, pa promene u jednom ne ulaze u drugi. U gornjem meniju obe aplikacije mogu se izazvati greška sledećeg zahteva i prazna lista, da se vide sva stanja ekrana. Backoffice ima prečice na tastaturi (spisak na F1).
