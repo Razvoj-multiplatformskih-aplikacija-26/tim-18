@@ -8,8 +8,12 @@ environment:
 resolution: workspace
 
 dependencies:
+  contract:
+    path: ../../packages/contract
   domain:
     path: ../../packages/domain
+  mapping:
+    path: ../../packages/mapping
   postgres: ^3.5.0
   relic: 1.2.0
 

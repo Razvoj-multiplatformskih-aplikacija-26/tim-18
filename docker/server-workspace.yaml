@@ -4,4 +4,6 @@ environment:
   sdk: ^3.13.0
 workspace:
   - apps/server
+  - packages/contract
   - packages/domain
+  - packages/mapping

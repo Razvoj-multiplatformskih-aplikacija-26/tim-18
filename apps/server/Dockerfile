@@ -2,7 +2,9 @@
 FROM dart:stable AS build
 WORKDIR /app
 COPY docker/server-workspace.yaml pubspec.yaml
+COPY packages/contract packages/contract
 COPY packages/domain packages/domain
+COPY packages/mapping packages/mapping
 COPY apps/server apps/server
 RUN dart pub get
 RUN dart compile exe apps/server/bin/server.dart -o /app/server
