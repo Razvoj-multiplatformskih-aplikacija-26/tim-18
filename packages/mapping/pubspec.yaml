@@ -1,0 +1,17 @@
+name: mapping
+description: The one place that translates between the wire contract and the domain, in both directions, errors included.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+
+dependencies:
+  contract:
+    path: ../contract
+  domain:
+    path: ../domain
+
+dev_dependencies:
+  test: 1.31.1
