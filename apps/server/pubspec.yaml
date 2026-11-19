@@ -1,0 +1,18 @@
+name: server
+description: Race Direction server. Source of truth for both clients.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+
+dependencies:
+  domain:
+    path: ../../packages/domain
+  postgres: ^3.5.0
+  relic: 1.2.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: 1.31.1
