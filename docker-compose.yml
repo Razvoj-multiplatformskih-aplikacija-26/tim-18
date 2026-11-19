@@ -1,0 +1,43 @@
+# Podiže bazu (sa šemom i početnim podacima) i server jednom komandom:
+#   cp .env.example .env && docker compose up --build
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # Skripte iz ovog foldera se izvršavaju redom pri prvom podizanju baze.
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SERVER_PORT: 8080
+      JWT_SECRET: ${JWT_SECRET}
+      SESSION_MINUTES: ${SESSION_MINUTES}
+      PENALTY_API_KEY: ${PENALTY_API_KEY}
+    ports:
+      - '${SERVER_PORT:-8080}:8080'
+
+volumes:
+  db_data:
