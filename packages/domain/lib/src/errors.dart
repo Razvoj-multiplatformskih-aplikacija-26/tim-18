@@ -103,6 +103,22 @@ final class NotFound extends DomainError {
   const NotFound();
 }
 
+/// A marshal tried to take back a report that the direction has already acted
+/// on. Only a report that is still in the state "reported" can be withdrawn.
+@immutable
+final class NotWithdrawable extends DomainError {
+  const NotWithdrawable();
+
+  @override
+  bool operator ==(Object other) => other is NotWithdrawable;
+
+  @override
+  int get hashCode => (NotWithdrawable).hashCode;
+
+  @override
+  String toString() => 'NotWithdrawable()';
+}
+
 /// The user signed in to the wrong application (a marshal in the backoffice,
 /// or the direction in the mobile app). [app] is the application that refused.
 @immutable

@@ -12,6 +12,7 @@ export 'src/incident/penalty.dart';
 export 'src/incident/reporting.dart';
 export 'src/incident/transitions.dart';
 export 'src/incident/turn_number.dart';
+export 'src/incident/withdrawal.dart';
 export 'src/result.dart';
 export 'src/rider.dart';
 export 'src/rules/duplicates.dart';

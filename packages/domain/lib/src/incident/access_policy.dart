@@ -16,4 +16,8 @@ abstract final class AccessPolicy {
   static bool canView(User user, Incident incident) => user.role.isDirection || incident.reporterId == user.id;
 
   static bool canDecide(User user) => user.role.isDirection;
+
+  /// Only the marshal who made a report may take it back. (Whether it is still
+  /// early enough is a rule of the state: see `withdrawIncident`.)
+  static bool canWithdraw(User user, Incident incident) => user.role == Role.marshal && incident.reporterId == user.id;
 }
