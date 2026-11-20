@@ -51,14 +51,25 @@ Javne stranice bez prijave prikazuju listu izrečenih kazni i stanje kaznenih po
 
 ## Pokretanje
 
-Razvijamo na macOS-u, sa Flutter 3.47.7. Mobilna aplikacija se pokreće na iOS-u (iOS simulator, odnosno Device Hub u Xcode-u 27). Projekat je pub workspace, pa se paketi razrešavaju jednom iz korena.
+Potrebno: Flutter 3.47.7, Docker Desktop (baza i server) i Xcode sa iOS simulatorom. Razvijamo na macOS-u. Projekat je pub workspace, pa se paketi razrešavaju jednom iz korena.
+
+### Server i baza (iz čistog klona)
 
     git clone <URL>
     cd tim-18
+    cp .env.example .env
+    docker compose up --build
     flutter pub get
 
-Mobilna aplikacija (marshal):
+`.env.example` sadrži razvojne vrednosti i radi bez izmena. Docker Compose podiže PostgreSQL sa šemom i početnim podacima (15 incidenata, 5 vozača, tri naloga) i server na `http://localhost:8080`. Terminal ostaje otvoren dok server radi.
 
+Provera servera pozivima mimo aplikacija (curl): `./scripts/smoke.sh`. Zaustavljanje: `Ctrl+C`. Baza se pravi iznova sa `docker compose down -v` (početni podaci se učitavaju samo pri prvom podizanju).
+
+### Klijenti (u drugom terminalu)
+
+Mobilna aplikacija (marshal) na iOS simulatoru:
+
+    open -a Simulator
     cd apps/mobile
     flutter run -d <id uređaja>
 
@@ -68,13 +79,38 @@ Backoffice (direkcija), na macOS-u i u pregledaču:
     flutter run -d macos
     flutter run -d chrome
 
-Id uređaja se dobija sa `flutter devices`.
+Id uređaja se dobija sa `flutter devices`. Aplikacije traže server na `localhost:8080` (Android emulator koristi `10.0.2.2`), a drugu adresu zadaje `--dart-define=API_URL=http://<adresa>:8080`.
 
-Testovi:
+### Demo nalozi
+
+Lozinka za sve naloge je `demo1234` (u bazi samo kao bcrypt heš).
+
+| Nalog | Uloga | Aplikacija |
+| --- | --- | --- |
+| `marshal1` | marshal | mobilna |
+| `marshal2` | marshal | mobilna |
+| `director1` | direkcija | backoffice |
+
+Prijava u pogrešnu aplikaciju je odbijena sa objašnjenjem ("Backoffice je za osoblje trke."). Prijava ostaje posle ponovnog pokretanja (bezbedno skladište platforme) i ističe posle vremena iz `SESSION_MINUTES` u `.env`.
+
+### Bez servera
+
+Obe aplikacije mogu da rade i nad lažnim podacima u memoriji (KT1), bez izmene ekrana:
+
+    cd apps/mobile && flutter run -t lib/main_fake.dart
+    cd apps/backoffice && flutter run -d macos -t lib/main_fake.dart
+
+U gornjem meniju se tada mogu izazvati greška sledećeg zahteva i prazna lista, da se vide sva stanja ekrana.
+
+### Testovi
 
     cd packages/domain && dart test -p vm,chrome
     cd packages/blocs && dart test -p vm,chrome
+    cd packages/contract && dart test -p vm,chrome
+    cd packages/mapping && dart test -p vm,chrome
+    cd packages/api_client && dart test
+    cd apps/server && dart test
     cd apps/mobile && flutter test
     cd apps/backoffice && flutter test
 
-Svaki klijent ima svoje lažne podatke u memoriji, pa promene u jednom ne ulaze u drugi. U gornjem meniju obe aplikacije mogu se izazvati greška sledećeg zahteva i prazna lista, da se vide sva stanja ekrana. Backoffice ima prečice na tastaturi (spisak na F1).
+Backoffice ima prečice na tastaturi (spisak na F1).
