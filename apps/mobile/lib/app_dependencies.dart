@@ -10,6 +10,7 @@ class AppDependencies {
     required this.user,
     this.onFailNextRequest,
     this.onEmptyNextRequest,
+    this.onSignOut,
     IncidentId Function()? newId,
     this.now,
   }) : newId = newId ?? _timestampId;
@@ -26,6 +27,9 @@ class AppDependencies {
 
   /// Same for the empty list screen.
   final void Function()? onEmptyNextRequest;
+
+  /// Set when the app has a login (the real setup); the sign-out button uses it.
+  final void Function()? onSignOut;
 
   static IncidentId _timestampId() => IncidentId('i-${DateTime.now().microsecondsSinceEpoch}');
 }

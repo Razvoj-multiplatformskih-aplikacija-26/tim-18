@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../router.dart';
+import '../widgets/account_button.dart';
 import '../widgets/debug_menu.dart';
 import '../widgets/incident_tile.dart';
 
@@ -14,7 +15,7 @@ class IncidentsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Incidenti'), actions: const [DebugMenu()]),
+      appBar: AppBar(title: const Text('Incidenti'), actions: const [DebugMenu(), AccountButton()]),
       body: BlocBuilder<IncidentsBloc, IncidentsState>(
         builder: (context, state) => switch (state) {
           IncidentsLoading() => const Center(child: CircularProgressIndicator()),
@@ -82,6 +83,8 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline, size: 48),
             const SizedBox(height: 12),
             const Text('Incidenti nisu učitani.'),
+            const SizedBox(height: 4),
+            const Text('Server nije dostupan ili nije odgovorio na vreme.', textAlign: TextAlign.center),
             const SizedBox(height: 16),
             FilledButton(onPressed: onRetry, child: const Text('Pokušaj ponovo')),
           ],

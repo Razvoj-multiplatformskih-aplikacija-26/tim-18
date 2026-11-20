@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../text/labels.dart';
 
-/// Asks for a last confirmation before a report is sent, because a report
-/// cannot be withdrawn. When the domain finds similar recent reports it says so.
+/// Asks for a last confirmation before a report is sent, because once the
+/// direction acts on it the report cannot be withdrawn. When the domain finds similar recent reports it says so.
 class ConfirmReportDialog extends StatelessWidget {
   const ConfirmReportDialog({super.key, required this.duplicates});
 
@@ -29,7 +29,7 @@ class ConfirmReportDialog extends StatelessWidget {
               ),
             const SizedBox(height: 12),
           ],
-          const Text('Prijava se ne može povući.'),
+          const Text('Prijavu možete povući dok je u stanju „Prijavljen“.'),
         ],
       ),
       actions: [

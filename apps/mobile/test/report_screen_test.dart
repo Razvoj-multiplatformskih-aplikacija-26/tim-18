@@ -71,7 +71,7 @@ void main() {
       await tapSubmit(tester);
 
       expect(find.text('Pošalji prijavu?'), findsOneWidget);
-      expect(find.text('Prijava se ne može povući.'), findsOneWidget);
+      expect(find.text('Prijavu možete povući dok je u stanju „Prijavljen“.'), findsOneWidget);
 
       await tapInDialog(tester, 'confirm-report');
 
