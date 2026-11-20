@@ -36,6 +36,10 @@ class FakeIncidentRepository implements IncidentRepository {
   bool failNext = false;
   int saveCalls = 0;
   int updateCalls = 0;
+  int withdrawCalls = 0;
+
+  /// What the next failing call throws. Defaults to a plain failure.
+  RepositoryException? failWith;
 
   @override
   Future<List<Incident>> incidentsFor(User viewer) async {
@@ -64,9 +68,18 @@ class FakeIncidentRepository implements IncidentRepository {
     return incident;
   }
 
+  @override
+  Future<void> withdraw(IncidentId id) async {
+    withdrawCalls++;
+    _failIfRequested();
+    _incidents.removeWhere((stored) => stored.id == id);
+  }
+
   void _failIfRequested() {
     if (!failNext) return;
     failNext = false;
-    throw const RepositoryException('simulated failure');
+    final failure = failWith;
+    failWith = null;
+    throw failure ?? const RepositoryException('simulated failure');
   }
 }

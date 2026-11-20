@@ -11,6 +11,7 @@ class IncidentsBloc extends Bloc<IncidentsEvent, IncidentsState> {
       super(const IncidentsLoading()) {
     on<IncidentsRequested>(_onRequested);
     on<IncidentReported>(_onReported);
+    on<IncidentWithdrawn>(_onWithdrawn);
     on<IncidentConfirmed>(
       (event, emit) => _decide(event.incidentId, (incident) => confirmIncident(incident, by: _user, now: _now()), emit),
     );
@@ -68,8 +69,8 @@ class IncidentsBloc extends Bloc<IncidentsEvent, IncidentsState> {
       emit(
         IncidentsLoaded(incidents: _newestFirst([saved, ...current.incidents]), submission: SubmissionStatus.succeeded),
       );
-    } on RepositoryException {
-      emit(current.withSubmission(SubmissionStatus.failed));
+    } on RepositoryException catch (failure) {
+      _failed(current, failure, emit);
     }
   }
 
@@ -105,9 +106,57 @@ class IncidentsBloc extends Bloc<IncidentsEvent, IncidentsState> {
           submission: SubmissionStatus.succeeded,
         ),
       );
-    } on RepositoryException {
-      emit(current.withSubmission(SubmissionStatus.failed));
+    } on RepositoryException catch (failure) {
+      _failed(current, failure, emit);
     }
+  }
+
+  Future<void> _onWithdrawn(IncidentWithdrawn event, Emitter<IncidentsState> emit) async {
+    final current = state;
+    if (current is! IncidentsLoaded || current.submission == SubmissionStatus.inProgress) return;
+
+    final incident = current.incidents.where((candidate) => candidate.id == event.incidentId).firstOrNull;
+    if (incident == null) {
+      emit(current.withSubmission(SubmissionStatus.rejected, error: const NotFound()));
+      return;
+    }
+
+    final error = withdrawIncident(incident, by: _user).errorOrNull;
+    if (error != null) {
+      emit(current.withSubmission(SubmissionStatus.rejected, error: error));
+      return;
+    }
+
+    emit(current.withSubmission(SubmissionStatus.inProgress));
+    try {
+      await _repository.withdraw(incident.id);
+      emit(
+        IncidentsLoaded(
+          incidents: [
+            for (final stored in current.incidents)
+              if (stored.id != incident.id) stored,
+          ],
+          submission: SubmissionStatus.succeeded,
+        ),
+      );
+    } on RepositoryException catch (failure) {
+      _failed(current, failure, emit);
+    }
+  }
+
+  /// A call did not go through. When the server refused it with a rule this
+  /// client knows, that rule is what the user sees; anything else is a plain
+  /// failure. When the server answered with a refusal the list is loaded again,
+  /// because what the server holds is what is true (someone else may have
+  /// acted first).
+  void _failed(IncidentsLoaded current, RepositoryException failure, Emitter<IncidentsState> emit) {
+    final rule = failure.rule;
+    emit(
+      rule != null
+          ? current.withSubmission(SubmissionStatus.rejected, error: rule)
+          : current.withSubmission(SubmissionStatus.failed),
+    );
+    if (failure.failure == RepositoryFailure.rejected) add(const IncidentsRequested());
   }
 
   Result<Incident> _penalize(Incident incident, IncidentPenalized event) {

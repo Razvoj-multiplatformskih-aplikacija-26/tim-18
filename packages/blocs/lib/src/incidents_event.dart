@@ -68,3 +68,13 @@ final class IncidentDismissed extends IncidentsEvent {
   @override
   List<Object?> get props => [incidentId, reason];
 }
+
+/// A marshal takes back a report of their own.
+final class IncidentWithdrawn extends IncidentsEvent {
+  const IncidentWithdrawn(this.incidentId);
+
+  final IncidentId incidentId;
+
+  @override
+  List<Object?> get props => [incidentId];
+}

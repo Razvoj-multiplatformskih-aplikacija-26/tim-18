@@ -50,6 +50,12 @@ class FakeIncidentRepository implements IncidentRepository {
     return incident;
   }
 
+  @override
+  Future<void> withdraw(IncidentId id) async {
+    await _simulateNetwork();
+    _incidents.removeWhere((stored) => stored.id == id);
+  }
+
   Future<void> _simulateNetwork() async {
     await Future<void>.delayed(latency);
     if (!_failNext) return;
