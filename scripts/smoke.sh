@@ -88,5 +88,25 @@ S=$(call GET /api/standings)
 body "$S" | grep -o '{[^}]*"riderId":"r-90"[^}]*}' | grep -q '"longLap":true' && echo "  OK   r-90 ima long lap" || { echo "  FAIL r-90 nema long lap: $(body "$S")"; FAILED=1; }
 echo "  (u bazi: docker compose exec db psql -U race -d race_direction -c 'select * from rider_long_laps')"
 
+echo "== Tuđ zapis i povlačenje sopstvene prijave"
+expect "marshal2 ne povlači tuđu prijavu"    403 "$(call DELETE "/api/incidents/$NEW" "$MAR2" mobile)" not_allowed
+expect "direkcija ne povlači prijave"        403 "$(call DELETE "/api/incidents/$NEW" "$DIR" backoffice)" not_allowed
+expect "potvrđena prijava se ne povlači"     409 "$(call DELETE "/api/incidents/$NEW" "$MAR" mobile)" not_withdrawable
+W="i-smoke-w-$RANDOM"; BODY=$(rep "$W" r-90 "Vozač je pao u krivini." 3); call POST /api/incidents "$MAR" mobile "$BODY" > /dev/null
+expect "marshal povlači svoju prijavu"       204 "$(call DELETE "/api/incidents/$W" "$MAR" mobile)"
+expect "povučena prijava više ne postoji"    404 "$(call DELETE "/api/incidents/$W" "$MAR" mobile)" not_found
+
+echo "== Povlačenje i potvrda u isto vreme: prolazi tačno jedno"
+V="i-smoke-v-$RANDOM"; BODY=$(rep "$V" r-90 "Vozač je pao u krivini." 3); call POST /api/incidents "$MAR" mobile "$BODY" > /dev/null
+call DELETE "/api/incidents/$V" "$MAR" mobile > /tmp/smoke_w &
+call POST "/api/incidents/$V/decision" "$DIR" backoffice '{"action":"confirm"}' > /tmp/smoke_c &
+wait
+WC=$(code "$(cat /tmp/smoke_w)"); CC=$(code "$(cat /tmp/smoke_c)")
+if { [ "$WC" = 204 ] && [ "$CC" = 404 ]; } || { [ "$WC" = 409 ] && [ "$CC" = 200 ]; }; then
+  echo "  OK   povlačenje $WC, potvrda $CC (jedno je prvo, drugo zakasnilo)"
+else
+  echo "  FAIL povlačenje $WC, potvrda $CC"; FAILED=1
+fi
+
 echo
 [ $FAILED = 0 ] && echo "SVE PROŠLO" || { echo "NEKA PROVERA NIJE PROŠLA"; exit 1; }

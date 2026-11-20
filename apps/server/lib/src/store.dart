@@ -122,6 +122,10 @@ final class Store {
     );
   }
 
+  Future<void> deleteIncident(Session tx, IncidentId id) async {
+    await tx.execute(Sql.named('DELETE FROM incidents WHERE id = @id'), parameters: {'id': id.value});
+  }
+
   /// One page, newest first, of what [viewer] may see. The cursor is opaque to
   /// the client: it is the time and id of the last incident of the page.
   Future<({List<Incident> items, String? nextCursor})> listIncidents(

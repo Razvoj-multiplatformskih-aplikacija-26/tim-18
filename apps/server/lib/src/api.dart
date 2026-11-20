@@ -13,7 +13,7 @@ import 'token.dart';
 /// That is solved here, once, and never in a client.
 const _corsHeaders = {
   'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, OPTIONS',
+  'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
   'access-control-allow-headers': 'authorization, content-type, x-client-app',
   'access-control-max-age': '600',
 };
@@ -67,6 +67,7 @@ final class Api {
       ('GET', ['api', 'incidents']) => _listIncidents(request),
       ('POST', ['api', 'incidents']) => _report(request),
       ('POST', ['api', 'incidents', final id, 'decision']) => _decide(request, id),
+      ('DELETE', ['api', 'incidents', final id]) => _withdraw(request, id),
       _ => throw ApiException.coded(404, ErrorCodes.notFound),
     };
   }
@@ -232,6 +233,25 @@ final class Api {
       return next;
     });
     return ApiResponse.json(200, incidentToDto(decided).toJson());
+  }
+
+  /// A marshal takes back a report of their own. Same lock as a decision: if
+  /// the direction acts at the same moment, one of the two goes first and the
+  /// other finds the state changed (or the report gone).
+  Future<ApiResponse> _withdraw(ApiRequest request, String incidentId) async {
+    final user = await _authenticate(request);
+
+    await _store.transaction((tx) async {
+      final current = await _store.incidentById(tx, incidentId, forUpdate: true);
+      if (current == null) throw ApiException.domain(const NotFound());
+
+      final result = withdrawIncident(current, by: user);
+      final error = result.errorOrNull;
+      if (error != null) throw ApiException.domain(error);
+
+      await _store.deleteIncident(tx, current.id);
+    });
+    return const ApiResponse(204, '');
   }
 
   Result<Incident> _apply(DecisionInput input, Incident incident, User by, DateTime now) => switch (input) {

@@ -69,6 +69,6 @@ final class ApiException implements Exception {
 int _statusFor(DomainError error) => switch (error) {
   NotAllowed() || WrongApp() => 403,
   NotFound() => 404,
-  InvalidTransition() => 409,
+  InvalidTransition() || NotWithdrawable() => 409,
   _ => 422,
 };
