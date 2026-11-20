@@ -1,3 +1,4 @@
+export 'src/client_app.dart';
 export 'src/errors.dart';
 export 'src/identifiers.dart';
 export 'src/incident/access_policy.dart';

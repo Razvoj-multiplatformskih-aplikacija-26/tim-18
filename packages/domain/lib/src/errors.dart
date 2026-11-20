@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 
+import 'client_app.dart';
 import 'incident/incident_status.dart';
 
 sealed class DomainError {
@@ -100,4 +101,22 @@ final class NotAllowed extends DomainError {
 
 final class NotFound extends DomainError {
   const NotFound();
+}
+
+/// The user signed in to the wrong application (a marshal in the backoffice,
+/// or the direction in the mobile app). [app] is the application that refused.
+@immutable
+final class WrongApp extends DomainError {
+  const WrongApp(this.app);
+
+  final ClientApp app;
+
+  @override
+  bool operator ==(Object other) => other is WrongApp && other.app == app;
+
+  @override
+  int get hashCode => Object.hash(WrongApp, app);
+
+  @override
+  String toString() => 'WrongApp(${app.name})';
 }

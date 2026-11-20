@@ -13,5 +13,9 @@ extension DomainErrorMessage on DomainError {
     InvalidTransition() => 'Ova promena stanja nije dozvoljena.',
     NotAllowed() => 'Nemate dozvolu za ovu akciju.',
     NotFound() => 'Traženi zapis ne postoji.',
+    WrongApp(:final app) => switch (app) {
+      ClientApp.backoffice => 'Backoffice je za osoblje trke.',
+      ClientApp.mobile => 'Ova aplikacija je za marshale.',
+    },
   };
 }
