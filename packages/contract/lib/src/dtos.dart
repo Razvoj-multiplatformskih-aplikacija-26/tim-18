@@ -227,3 +227,20 @@ final class IncidentPageDto {
     if (nextCursor != null) 'nextCursor': nextCursor,
   };
 }
+
+/// A rider's penalty points and whether the long lap penalty was handed out.
+final class StandingDto {
+  const StandingDto({required this.riderId, required this.points, required this.longLap});
+
+  factory StandingDto.fromJson(Json json) => StandingDto(
+    riderId: requiredField<String>(json, 'riderId'),
+    points: requiredField<int>(json, 'points'),
+    longLap: requiredField<bool>(json, 'longLap'),
+  );
+
+  final String riderId;
+  final int points;
+  final bool longLap;
+
+  Json toJson() => {'riderId': riderId, 'points': points, 'longLap': longLap};
+}

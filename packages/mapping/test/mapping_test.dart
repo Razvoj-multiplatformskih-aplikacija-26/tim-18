@@ -100,6 +100,7 @@ void main() {
       ),
       const NotAllowed(),
       const NotFound(),
+      const WrongApp(ClientApp.backoffice),
     ];
 
     for (final error in errors) {
@@ -122,6 +123,12 @@ void main() {
       expect(domainErrorFromDto(const ApiErrorDto(code: ErrorCodes.sessionExpired)), isNull);
       expect(domainErrorFromDto(const ApiErrorDto(code: ErrorCodes.invalidTurn)), isNull); // figures missing
     });
+  });
+
+  test('standing round trip', () {
+    const standing = RiderStanding(riderId: RiderId('r-12'), points: 5);
+    expect(standingFromDto(standingToDto(standing, longLap: true)), standing);
+    expect(standingToDto(standing, longLap: true).longLap, isTrue);
   });
 
   test('user and rider round trip', () {

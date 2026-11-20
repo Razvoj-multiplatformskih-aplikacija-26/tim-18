@@ -27,6 +27,7 @@ ApiErrorDto domainErrorToDto(DomainError error) => switch (error) {
   ),
   NotAllowed() => const ApiErrorDto(code: ErrorCodes.notAllowed),
   NotFound() => const ApiErrorDto(code: ErrorCodes.notFound),
+  WrongApp(:final app) => ApiErrorDto(code: ErrorCodes.wrongApp, data: {ErrorKeys.app: app.name}),
 };
 
 /// The domain error behind a wire error, or null when the code is not a rule
@@ -57,9 +58,19 @@ DomainError? domainErrorFromDto(ApiErrorDto dto) {
       return const NotAllowed();
     case ErrorCodes.notFound:
       return const NotFound();
+    case ErrorCodes.wrongApp:
+      final app = _clientApp(dto.stringData(ErrorKeys.app));
+      return app == null ? null : WrongApp(app);
     default:
       return null;
   }
+}
+
+ClientApp? _clientApp(String? name) {
+  for (final app in ClientApp.values) {
+    if (app.name == name) return app;
+  }
+  return null;
 }
 
 IncidentStage? _stage(String? name) {

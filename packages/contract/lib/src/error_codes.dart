@@ -13,12 +13,13 @@ abstract final class ErrorCodes {
   static const invalidTransition = 'invalid_transition';
   static const notAllowed = 'not_allowed';
   static const notFound = 'not_found';
+  static const wrongApp = 'wrong_app';
 
   // Transport and session (no counterpart in the domain).
+  // (`wrong_app` is above: it is a rule of the domain.)
   static const invalidCredentials = 'invalid_credentials';
   static const unauthorized = 'unauthorized';
   static const sessionExpired = 'session_expired';
-  static const wrongApp = 'wrong_app';
   static const badRequest = 'bad_request';
   static const internal = 'internal_error';
 }
@@ -33,4 +34,5 @@ abstract final class ErrorKeys {
   static const points = 'points';
   static const from = 'from';
   static const to = 'to';
+  static const app = 'app';
 }

@@ -5,6 +5,9 @@ abstract final class ApiPaths {
   static const riders = '/api/riders';
   static const incidents = '/api/incidents';
 
+  /// Public: no login needed.
+  static const standings = '/api/standings';
+
   /// `POST /api/incidents/{id}/decision`
   static String decision(String incidentId) => '$incidents/$incidentId/decision';
 }
