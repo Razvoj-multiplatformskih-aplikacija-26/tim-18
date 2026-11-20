@@ -28,10 +28,7 @@ const _clockSkew = Duration(minutes: 5);
 /// functions the clients use. Who is calling is known only from the token this
 /// server issued, and it is checked on every call.
 final class Api {
-  Api({required Store store, required TokenService tokens, DateTime Function()? now})
-    : _store = store,
-      _tokens = tokens,
-      _now = now ?? DateTime.now;
+  Api({required this._store, required this._tokens, DateTime Function()? now}) : _now = now ?? DateTime.now;
 
   final Store _store;
   final TokenService _tokens;
