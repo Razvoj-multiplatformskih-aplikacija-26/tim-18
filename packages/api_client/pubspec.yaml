@@ -1,0 +1,22 @@
+name: api_client
+description: How both apps talk to the server. Pure Dart, runs on the VM and in the browser.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+
+dependencies:
+  blocs:
+    path: ../blocs
+  contract:
+    path: ../contract
+  domain:
+    path: ../domain
+  http: ^1.2.0
+  mapping:
+    path: ../mapping
+
+dev_dependencies:
+  test: 1.31.1
