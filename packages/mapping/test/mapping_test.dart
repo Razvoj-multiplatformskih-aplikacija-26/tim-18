@@ -100,6 +100,7 @@ void main() {
       ),
       const NotAllowed(),
       const NotFound(),
+      const NotWithdrawable(),
       const WrongApp(ClientApp.backoffice),
     ];
 
@@ -108,7 +109,9 @@ void main() {
         final wire = ApiErrorDto.fromJson(jsonDecode(jsonEncode(domainErrorToDto(error).toJson())) as Json);
         final back = domainErrorFromDto(wire);
         expect(back.runtimeType, error.runtimeType);
-        if (error is! ReasonRequired && error is! NotAllowed && error is! NotFound) expect(back, error);
+        if (error is! ReasonRequired && error is! NotAllowed && error is! NotFound && error is! NotWithdrawable) {
+          expect(back, error);
+        }
       });
     }
 

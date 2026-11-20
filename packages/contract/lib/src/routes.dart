@@ -5,6 +5,9 @@ abstract final class ApiPaths {
   static const riders = '/api/riders';
   static const incidents = '/api/incidents';
 
+  /// `DELETE /api/incidents/{id}`: a marshal takes back a report of their own.
+  static String incident(String incidentId) => '$incidents/$incidentId';
+
   /// Public: no login needed.
   static const standings = '/api/standings';
 

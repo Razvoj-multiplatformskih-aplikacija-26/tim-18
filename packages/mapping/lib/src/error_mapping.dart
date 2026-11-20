@@ -27,6 +27,7 @@ ApiErrorDto domainErrorToDto(DomainError error) => switch (error) {
   ),
   NotAllowed() => const ApiErrorDto(code: ErrorCodes.notAllowed),
   NotFound() => const ApiErrorDto(code: ErrorCodes.notFound),
+  NotWithdrawable() => const ApiErrorDto(code: ErrorCodes.notWithdrawable),
   WrongApp(:final app) => ApiErrorDto(code: ErrorCodes.wrongApp, data: {ErrorKeys.app: app.name}),
 };
 
@@ -58,6 +59,8 @@ DomainError? domainErrorFromDto(ApiErrorDto dto) {
       return const NotAllowed();
     case ErrorCodes.notFound:
       return const NotFound();
+    case ErrorCodes.notWithdrawable:
+      return const NotWithdrawable();
     case ErrorCodes.wrongApp:
       final app = _clientApp(dto.stringData(ErrorKeys.app));
       return app == null ? null : WrongApp(app);

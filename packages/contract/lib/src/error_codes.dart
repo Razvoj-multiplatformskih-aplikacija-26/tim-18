@@ -14,6 +14,7 @@ abstract final class ErrorCodes {
   static const notAllowed = 'not_allowed';
   static const notFound = 'not_found';
   static const wrongApp = 'wrong_app';
+  static const notWithdrawable = 'not_withdrawable';
 
   // Transport and session (no counterpart in the domain).
   // (`wrong_app` is above: it is a rule of the domain.)
