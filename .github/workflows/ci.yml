@@ -40,6 +40,3 @@ jobs:
 
       - name: Test the backoffice
         run: cd apps/backoffice && flutter test
-
-      - name: Test the backoffice
-        run: cd apps/backoffice && flutter test
