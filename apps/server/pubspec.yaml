@@ -10,6 +10,7 @@ resolution: workspace
 dependencies:
   contract:
     path: ../../packages/contract
+  crypto: ^3.0.6
   domain:
     path: ../../packages/domain
   mapping:
