@@ -1,20 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'app.dart';
-import 'app_dependencies.dart';
-import 'data/fake_incident_repository.dart';
-import 'data/seed_data.dart';
+import 'data/server_connection.dart';
+import 'root_app.dart';
 
+/// The real app: everything comes from the server. The version on the fake
+/// repository is `main_fake.dart` (`flutter run -t lib/main_fake.dart`).
 void main() {
-  final repository = FakeIncidentRepository();
-  runApp(
-    BackofficeApp(
-      dependencies: AppDependencies(
-        repository: repository,
-        user: demoDirector,
-        onFailNextRequest: repository.failNextRequest,
-        onEmptyNextRequest: repository.emptyNextRequest,
-      ),
-    ),
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(BackofficeRoot(connection: ServerConnection.real()));
 }

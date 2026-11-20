@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../shortcuts.dart';
 import '../text/error_messages.dart';
+import '../widgets/account_button.dart';
 import '../widgets/debug_menu.dart';
 import '../widgets/decision_bar.dart';
 import '../widgets/filter_bar.dart';
@@ -142,6 +143,7 @@ class _IncidentsScreenState extends State<IncidentsScreen> {
               onPressed: () => unawaited(showShortcutsDialog(context)),
             ),
             const DebugMenu(),
+            const AccountButton(),
           ],
         ),
         body: BlocBuilder<IncidentsBloc, IncidentsState>(
@@ -307,6 +309,8 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline, size: 48),
             const SizedBox(height: 12),
             const Text('Incidenti nisu učitani.'),
+            const SizedBox(height: 4),
+            const Text('Server nije dostupan ili nije odgovorio na vreme.'),
             const SizedBox(height: 16),
             FilledButton(onPressed: onRetry, child: const Text('Pokušaj ponovo')),
           ],
