@@ -6,6 +6,7 @@ import 'package:server/config.dart';
 import 'package:server/src/api.dart';
 import 'package:server/src/http.dart';
 import 'package:server/src/store.dart';
+import 'package:server/src/team_notifier.dart';
 import 'package:server/src/token.dart';
 
 Future<void> main() async {
@@ -24,6 +25,7 @@ Future<void> main() async {
   final api = Api(
     store: Store(pool),
     tokens: TokenService(secret: config.jwtSecret, lifetime: config.sessionDuration),
+    notifier: FakeTeamNotifier(apiKey: config.penaltyApiKey),
   );
 
   final app = RelicApp()..any('/**', (Request request) => _adapt(api, request));

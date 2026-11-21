@@ -6,6 +6,7 @@ import 'package:mapping/mapping.dart';
 
 import 'http.dart';
 import 'store.dart';
+import 'team_notifier.dart';
 import 'token.dart';
 
 /// The browser backoffice runs on another origin than the server, so the
@@ -28,10 +29,13 @@ const _clockSkew = Duration(minutes: 5);
 /// functions the clients use. Who is calling is known only from the token this
 /// server issued, and it is checked on every call.
 final class Api {
-  Api({required this._store, required this._tokens, DateTime Function()? now}) : _now = now ?? DateTime.now;
+  Api({required this._store, required this._tokens, TeamNotifier? notifier, DateTime Function()? now})
+    : _notifier = notifier ?? FakeTeamNotifier(apiKey: ''),
+      _now = now ?? DateTime.now;
 
   final Store _store;
   final TokenService _tokens;
+  final TeamNotifier _notifier;
   final DateTime Function() _now;
 
   Future<ApiResponse> handle(ApiRequest request) async {
@@ -207,6 +211,7 @@ final class Api {
     final input = decisionInputFromDto(DecisionDto.fromJson(request.jsonBody()));
     final now = _now().toUtc();
 
+    var longLapAwarded = false;
     final decided = await _store.transaction((tx) async {
       // The row is locked until this transaction ends. A second decision about
       // the same incident waits, then reads the new status and is refused by
@@ -225,13 +230,30 @@ final class Api {
         final before = penaltyPointsOf(next.riderId, await _store.penaltyIncidentsOf(tx, next.riderId));
         await _store.updateStatus(tx, next);
         if (crossesLongLapThreshold(pointsBefore: before, added: penalty.points)) {
-          await _store.awardLongLap(tx, next.riderId, next.id);
+          longLapAwarded = await _store.awardLongLap(tx, next.riderId, next.id);
         }
       } else {
         await _store.updateStatus(tx, next);
       }
       return next;
     });
+
+    // The decision is already stored. Telling the team is best effort: if the
+    // outside service is down, the penalty still stands.
+    if (decided.status case PenaltyIssued(:final penalty)) {
+      try {
+        await _notifier.penaltyIssued(
+          PenaltyNotice(
+            riderId: decided.riderId,
+            incidentId: decided.id,
+            penalty: penalty,
+            longLapAwarded: longLapAwarded,
+          ),
+        );
+      } on Object catch (error) {
+        stderr.writeln('Obaveštenje timu nije poslato: $error');
+      }
+    }
     return ApiResponse.json(200, incidentToDto(decided).toJson());
   }
 
