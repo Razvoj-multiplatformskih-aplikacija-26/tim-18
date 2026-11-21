@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// Only the session the server issued is stored, never the password.
 final class SecureSessionStore implements SessionStore {
   SecureSessionStore({required this._key, FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage();
+    : _storage = storage ?? const FlutterSecureStorage(mOptions: MacOsOptions(useDataProtectionKeyChain: false));
 
   final String _key;
   final FlutterSecureStorage _storage;
