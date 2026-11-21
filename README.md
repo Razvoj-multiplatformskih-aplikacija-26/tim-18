@@ -12,7 +12,7 @@ Mobilna i web aplikacija za marshale i direkciju MotoGP trke: marshali na stazi 
 
 ## Opis sistema
 
-Race Direction digitalizuje prijavu i obradu incidenata na MotoGP trci. Marshal sa mobilnog telefona prijavljuje incident (pad, nedozvoljeno preticanje, prelazak granica staze) sa opisom, vozačem i lokacijom na stazi. Direkcija trke na velikom ekranu vidi sve prijave, razmatra ih i određuje kaznu. Kazneni poeni se skupljaju kroz celu sezonu, a kad vozač pređe prag, server automatski dodeljuje kaznu (na primer long lap penalty). Javni deo aplikacije prikazuje izrečene kazne i stanje kaznenih poena po vozaču.
+Race Direction digitalizuje prijavu i obradu incidenata na MotoGP trci. Marshal sa mobilnog telefona prijavljuje incident (pad, nedozvoljeno preticanje, prelazak granica staze) sa opisom, vozačem i lokacijom na stazi. Direkcija trke na velikom ekranu vidi sve prijave, razmatra ih i određuje kaznu. Kazneni poeni se skupljaju kroz celu sezonu, a kad vozač pređe prag, server automatski dodeljuje kaznu (na primer long lap penalty), a o izrečenoj kazni server obaveštava tim vozača kroz spoljni servis (za sada lažna implementacija). Javni deo aplikacije prikazuje izrečene kazne i stanje kaznenih poena po vozaču.
 
 ## Ispunjenost zahteva
 
@@ -69,7 +69,7 @@ Provera servera pozivima mimo aplikacija (curl): `./scripts/smoke.sh`. Zaustavlj
 
 Mobilna aplikacija (marshal) na iOS simulatoru:
 
-    open -a Simulator
+    xcrun simctl boot <id simulatora>
     cd apps/mobile
     flutter run -d <id uređaja>
 
